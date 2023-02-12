@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import MoviesList from "./components/MoviesList";
 import "./App.css";
@@ -23,11 +23,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchMoviesHandler = async () => {
+  const fetchMoviesHandler = useCallback(async () => {
+    console.log("fetching MOvies");
     try {
       setIsLoading(true);
 
-      const res = await fetch("https://swapi.dev/api/films/12131");
+      const res = await fetch("https://swapi.dev/api/films");
       if (!res.ok)
         throw new Error(
           "Something went Wrong' to 'Something went wrong ....Retrying"
@@ -55,7 +56,11 @@ function App() {
       setError(error.message);
     }
     setIsLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchMoviesHandler();
+  }, [fetchMoviesHandler]);
 
   useEffect(() => {
     if (error.length) {
@@ -68,7 +73,7 @@ function App() {
         clearInterval(id);
       };
     }
-  }, [error]);
+  }, [error, fetchMoviesHandler]);
 
   const retryCancleHandler = () => {
     setError("");
@@ -83,7 +88,9 @@ function App() {
         )}
       </section>
       <section>
-        {!isLoading && movies.length > 0 && <MoviesList movies={movies} />}
+        {!isLoading && movies.length > 0 && error.length === 0 && (
+          <MoviesList movies={movies} />
+        )}
 
         {isLoading && !error && <h3>Loading ....</h3>}
         {error && <h3>{error}</h3>}
