@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import MoviesList from "./components/MoviesList";
 import "./App.css";
@@ -21,11 +21,18 @@ function App() {
 
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchMoviesHandler = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("https://swapi.dev/api/films");
+
+      const res = await fetch("https://swapi.dev/api/films/12131");
+      if (!res.ok)
+        throw new Error(
+          "Something went Wrong' to 'Something went wrong ....Retrying"
+        );
+      setError("");
       const data = await res.json();
 
       const moviesArr = data.results.map((movie) => {
@@ -43,25 +50,47 @@ function App() {
         };
       });
 
-      // console.log(moviesArr);
-
       setMovies(moviesArr);
-      setIsLoading(false);
     } catch (error) {
-      console.log(error);
+      setError(error.message);
     }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (error.length) {
+      const id = setInterval(() => {
+        fetchMoviesHandler();
+      }, 5000);
+
+      return () => {
+        // console.log(id);
+        clearInterval(id);
+      };
+    }
+  }, [error]);
+
+  const retryCancleHandler = () => {
+    setError("");
   };
 
   return (
     <React.Fragment>
       <section>
         <button onClick={fetchMoviesHandler}>Fetch Movies</button>
+        {error.length > 0 && (
+          <button onClick={retryCancleHandler}> Cancel retry</button>
+        )}
       </section>
       <section>
-        {isLoading && <h3>Loading ....</h3>}
-        {!isLoading && movies.length && <MoviesList movies={movies} />}
+        {!isLoading && movies.length > 0 && <MoviesList movies={movies} />}
 
-        {!isLoading && !movies.length && <p>NO Movies Found</p>}
+        {isLoading && !error && <h3>Loading ....</h3>}
+        {error && <h3>{error}</h3>}
+
+        {!isLoading && movies.length === 0 && error.length === 0 && (
+          <p>NO Movies Found</p>
+        )}
       </section>
     </React.Fragment>
   );
