@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import MoviesList from "./components/MoviesList";
 import "./App.css";
@@ -29,26 +29,38 @@ function App() {
     try {
       setIsLoading(true);
 
-      const res = await fetch("https://swapi.dev/api/films");
+      const res = await fetch(
+        `${process.env.REACT_APP_FIREBASE_DB_URL}/${process.env.REACT_APP_DB_NAME}.json`
+      );
       if (!res.ok)
         throw new Error(
           "Something went Wrong' to 'Something went wrong ....Retrying"
         );
       setError("");
       const data = await res.json();
+      // console.log(data);
 
-      const moviesArr = data.results.map((movie) => {
-        const {
-          opening_crawl: openingText,
-          title,
-          release_date: releaseDate,
-          episode_id: id,
-        } = movie;
+      // const moviesArr = data.results.map((movie) => {
+      //   const {
+      //     opening_crawl: openingText,
+      //     title,
+      //     release_date: releaseDate,
+      //     episode_id: id,
+      //   } = movie;
+      //   return {
+      //     id: id || title + releaseDate,
+      //     title,
+      //     openingText,
+      //     releaseDate,
+      //   };
+      // });
+
+      const moviesArr = Object.keys(data).map((movieID) => {
         return {
-          id: id || title + releaseDate,
-          title,
-          openingText,
-          releaseDate,
+          id: movieID,
+          title: data[movieID].title,
+          openingText: data[movieID].openingText,
+          releaseDate: data[movieID].releaseDate,
         };
       });
 
@@ -80,9 +92,38 @@ function App() {
     setError("");
   };
 
+  const addMovieHandler = async (movie) => {
+    try {
+      // console.log(
+      //   `${process.env.REACT_APP_FIREBASE_DB_URL}/${process.env.REACT_APP_DB_NAME}.json`
+      // );
+      const res = await fetch(
+        `${process.env.REACT_APP_FIREBASE_DB_URL}/${process.env.REACT_APP_DB_NAME}.json`,
+        {
+          method: "POST",
+          body: JSON.stringify(movie),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      // console.log(res);
+      if (!res.ok)
+        throw new Error(
+          "Something went Wrong' to 'Something went wrong ....Retrying"
+        );
+
+      // const data = await res.json();
+
+      // console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <React.Fragment>
-      <AddMovie />
+      <AddMovie onAddMovie={addMovieHandler} />
       <section>
         <button onClick={fetchMoviesHandler}>Fetch Movies</button>
         {error.length > 0 && (

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import classes from "./AddMovie.module.css";
 
-const AddMovie = () => {
+const AddMovie = (props) => {
   const inputMovieTitle = useRef("");
   const inputMovieOpeningText = useRef("");
   const inputMovieReleaseDate = useRef("");
@@ -23,7 +23,8 @@ const AddMovie = () => {
       releaseDate,
     };
 
-    console.log(newMovieObj);
+    // console.log(newMovieObj);
+    props.onAddMovie(newMovieObj);
     alert("submitted");
 
     // cleanup
